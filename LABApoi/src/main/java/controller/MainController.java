@@ -139,61 +139,76 @@ public class MainController {
     }
 
     private void prepareStatisticsData(List<String> statsNames, List<double[]> statsResults) {
-        List<List<Double>> dataColumns = model.getDataColumns();
+    List<List<Double>> dataColumns = model.getDataColumns();
+    List<String> columnNames = model.getColumnNames();
+    
+    statsNames.add("Среднее арифметическое");
+    statsNames.add("Среднее геометрическое");
+    statsNames.add("Стандартное отклонение");
+    statsNames.add("Размах");
+    statsNames.add("Дисперсия");
+    statsNames.add("Коэффициент вариации");
+    statsNames.add("Доверительный интервал (нижняя граница)");
+    statsNames.add("Доверительный интервал (верхняя граница)");
+    statsNames.add("Минимум");
+    statsNames.add("Максимум");
+    statsNames.add("Количество элементов");
+    
+    double[] means = new double[dataColumns.size()];
+    double[] geomMeans = new double[dataColumns.size()];
+    double[] stdDevs = new double[dataColumns.size()];
+    double[] ranges = new double[dataColumns.size()];
+    double[] variances = new double[dataColumns.size()];
+    double[] varCoeffs = new double[dataColumns.size()];
+    double[] confIntLower = new double[dataColumns.size()];
+    double[] confIntUpper = new double[dataColumns.size()];
+    double[] mins = new double[dataColumns.size()];
+    double[] maxs = new double[dataColumns.size()];
+    double[] counts = new double[dataColumns.size()];
+    
+    for (int i = 0; i < dataColumns.size(); i++) {
+        List<Double> columnData = dataColumns.get(i);
         
-        statsNames.add("Среднее арифметическое");
-        statsNames.add("Среднее геометрическое");
-        statsNames.add("Стандартное отклонение");
-        statsNames.add("Размах");
-        statsNames.add("Дисперсия");
-        statsNames.add("Коэффициент вариации");
-        statsNames.add("Доверительный интервал (нижняя граница)");
-        statsNames.add("Доверительный интервал (верхняя граница)");
-        statsNames.add("Минимум");
-        statsNames.add("Максимум");
-        statsNames.add("Количество элементов");
+        means[i] = StatisticsCalculator.calculateMean(columnData);
+        geomMeans[i] = StatisticsCalculator.calculateGeometricMean(columnData);
+        stdDevs[i] = StatisticsCalculator.calculateStandardDeviation(columnData);
+        ranges[i] = StatisticsCalculator.calculateRange(columnData);
+        variances[i] = StatisticsCalculator.calculateVariance(columnData);
+        varCoeffs[i] = StatisticsCalculator.calculateVariationCoefficient(columnData);
         
-        double[] means = new double[dataColumns.size()];
-        double[] geomMeans = new double[dataColumns.size()];
-        double[] stdDevs = new double[dataColumns.size()];
-        double[] ranges = new double[dataColumns.size()];
-        double[] variances = new double[dataColumns.size()];
-        double[] varCoeffs = new double[dataColumns.size()];
-        double[] confIntLower = new double[dataColumns.size()];
-        double[] confIntUpper = new double[dataColumns.size()];
-        double[] mins = new double[dataColumns.size()];
-        double[] maxs = new double[dataColumns.size()];
-        double[] counts = new double[dataColumns.size()];
+        double[] confInterval = StatisticsCalculator.calculateConfidenceInterval(columnData, 0.95);
+        confIntLower[i] = confInterval[0];
+        confIntUpper[i] = confInterval[1];
         
-        for (int i = 0; i < dataColumns.size(); i++) {
-            List<Double> columnData = dataColumns.get(i);
-            
-            means[i] = StatisticsCalculator.calculateMean(columnData);
-            geomMeans[i] = StatisticsCalculator.calculateGeometricMean(columnData);
-            stdDevs[i] = StatisticsCalculator.calculateStandardDeviation(columnData);
-            ranges[i] = StatisticsCalculator.calculateRange(columnData);
-            variances[i] = StatisticsCalculator.calculateVariance(columnData);
-            varCoeffs[i] = StatisticsCalculator.calculateVariationCoefficient(columnData);
-            
-            double[] confInterval = StatisticsCalculator.calculateConfidenceInterval(columnData, 0.95);
-            confIntLower[i] = confInterval[0];
-            confIntUpper[i] = confInterval[1];
-            
-            mins[i] = StatUtils.min(columnData.stream().mapToDouble(Double::doubleValue).toArray());
-            maxs[i] = StatUtils.max(columnData.stream().mapToDouble(Double::doubleValue).toArray());
-            counts[i] = columnData.size();
-        }
-        
-        statsResults.add(means);
-        statsResults.add(geomMeans);
-        statsResults.add(stdDevs);
-        statsResults.add(ranges);
-        statsResults.add(variances);
-        statsResults.add(varCoeffs);
-        statsResults.add(confIntLower);
-        statsResults.add(confIntUpper);
-        statsResults.add(mins);
-        statsResults.add(maxs);
-        statsResults.add(counts);
+        mins[i] = StatUtils.min(columnData.stream().mapToDouble(Double::doubleValue).toArray());
+        maxs[i] = StatUtils.max(columnData.stream().mapToDouble(Double::doubleValue).toArray());
+        counts[i] = columnData.size();
     }
+    
+    statsResults.add(means);
+    statsResults.add(geomMeans);
+    statsResults.add(stdDevs);
+    statsResults.add(ranges);
+    statsResults.add(variances);
+    statsResults.add(varCoeffs);
+    statsResults.add(confIntLower);
+    statsResults.add(confIntUpper);
+    statsResults.add(mins);
+    statsResults.add(maxs);
+    statsResults.add(counts);
+    
+    if (dataColumns.size() > 1) {
+        for (int i = 0; i < dataColumns.size(); i++) {
+            for (int j = i + 1; j < dataColumns.size(); j++) {
+                double cov = StatisticsCalculator.calculateCovariance(dataColumns.get(i), dataColumns.get(j));
+                String covName = String.format("Ковариация между %s и %s", columnNames.get(i), columnNames.get(j));
+                double[] covValues = new double[dataColumns.size()];
+                covValues[i] = cov;
+                covValues[j] = cov;
+                statsNames.add(covName);
+                statsResults.add(covValues);
+            }
+        }
+    }
+}
 }

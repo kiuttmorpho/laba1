@@ -52,18 +52,18 @@ public class StatisticsCalculator {
     }
 
     public static double[] calculateConfidenceInterval(List<Double> data, double confidenceLevel) {
-    DescriptiveStatistics stats = new DescriptiveStatistics();
-    data.forEach(stats::addValue);
-    
-    double mean = stats.getMean();
-    double stdDev = stats.getStandardDeviation();
-    double n = stats.getN();
-    
-    TDistribution tDistribution = new TDistribution(n - 1);
-    double criticalValue = tDistribution.inverseCumulativeProbability(1 - (1 - confidenceLevel) / 2);
-    
-    double marginOfError = criticalValue * stdDev / Math.sqrt(n);
-    
-    return new double[]{mean - marginOfError, mean + marginOfError};
+        DescriptiveStatistics stats = new DescriptiveStatistics();
+        data.forEach(stats::addValue);
+
+        double mean = stats.getMean();
+        double stdDev = stats.getStandardDeviation();
+        double n = stats.getN();
+
+        TDistribution tDistribution = new TDistribution(n - 1);
+        double criticalValue = tDistribution.inverseCumulativeProbability(1 - (1 - confidenceLevel) / 2);
+
+        double marginOfError = criticalValue * stdDev / Math.sqrt(n);
+
+        return new double[]{mean - marginOfError, mean + marginOfError};
     }
 }

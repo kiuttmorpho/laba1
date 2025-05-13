@@ -60,7 +60,7 @@ public class DataModel {
                 sheetsData.add(sheetData);
                 sheetsColumnNames.add(columnNames);
             }
-            currentSheetIndex = 0; // устанавливаем на первый лист по умолчанию
+            currentSheetIndex = 0; // первый лист по умолчанию
         }
     }
 
