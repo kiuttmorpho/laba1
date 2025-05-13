@@ -4,12 +4,15 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.util.List;
+
 
 public class MainView extends JFrame {
     private JButton importButton;
     private JButton exportButton;
     private JButton exitButton;
     private JTextArea resultArea;
+    private JComboBox<String> sheetSelector;
 
     public MainView() {
         setTitle("Лабораторная работа 1");
@@ -32,6 +35,14 @@ public class MainView extends JFrame {
 
         getContentPane().add(buttonPanel, BorderLayout.NORTH);
         getContentPane().add(scrollPane, BorderLayout.CENTER);
+        
+        sheetSelector = new JComboBox<>();
+        sheetSelector.setEnabled(false);
+        JPanel topPanel = new JPanel(new BorderLayout());
+        topPanel.add(buttonPanel, BorderLayout.CENTER);
+        topPanel.add(sheetSelector, BorderLayout.EAST);
+        
+        getContentPane().add(topPanel, BorderLayout.NORTH);
     }
 
     public void setImportButtonListener(ActionListener listener) {
@@ -66,6 +77,22 @@ public class MainView extends JFrame {
             return fileChooser.getSelectedFile();
         }
         return null;
+    }
+    
+    public void updateSheetSelector(List<String> sheetNames) {
+        sheetSelector.removeAllItems();
+        for (String name : sheetNames) {
+            sheetSelector.addItem(name);
+        }
+        sheetSelector.setEnabled(!sheetNames.isEmpty());
+    }
+
+    public int getSelectedSheetIndex() {
+        return sheetSelector.getSelectedIndex();
+    }
+
+    public void setSheetChangeListener(ActionListener listener) {
+        sheetSelector.addActionListener(listener);
     }
 }
 

@@ -23,6 +23,7 @@ public class MainController {
         view.setImportButtonListener(new ImportButtonListener());
         view.setExportButtonListener(new ExportButtonListener());
         view.setExitButtonListener(new ExitButtonListener());
+        view.setSheetChangeListener(new SheetChangeListener());
     }
 
     class ImportButtonListener implements ActionListener {
@@ -32,11 +33,24 @@ public class MainController {
                 File file = view.showFileOpenDialog();
                 if (file != null) {
                     model.loadDataFromExcel(file);
-                    calculateAndDisplayStatistics();
+                    view.updateSheetSelector(model.getSheetNames());
+                    if (model.getSheetsCount() > 0) {
+    model.setCurrentSheet(0); // устанавливаем активный лист в первый
+    calculateAndDisplayStatistics();
+}
+
                 }
             } catch (Exception ex) {
                 ErrorDialog.showError("Ошибка при импорте данных");
             }
+        }
+    }
+
+    class SheetChangeListener implements ActionListener {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            model.setCurrentSheet(view.getSelectedSheetIndex());
+            calculateAndDisplayStatistics();
         }
     }
 
