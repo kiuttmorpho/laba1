@@ -23,46 +23,62 @@ public class DataModel {
     }
 
     public void loadDataFromExcel(File file) throws IOException {
-        sheetsData.clear();
-        sheetsColumnNames.clear();
-        sheetNames.clear();
+    sheetsData.clear();
+    sheetsColumnNames.clear();
+    sheetNames.clear();
 
-        try (FileInputStream fis = new FileInputStream(file);
-             Workbook workbook = new XSSFWorkbook(fis)) {
+    try (FileInputStream fis = new FileInputStream(file);
+         Workbook workbook = new XSSFWorkbook(fis)) {
 
-            for (int sheetIndex = 0; sheetIndex < workbook.getNumberOfSheets(); sheetIndex++) {
-                Sheet sheet = workbook.getSheetAt(sheetIndex);
-                sheetNames.add(sheet.getSheetName());
+        FormulaEvaluator evaluator = workbook.getCreationHelper().createFormulaEvaluator();
 
-                List<List<Double>> sheetData = new ArrayList<>();
-                List<String> columnNames = new ArrayList<>();
+        for (int sheetIndex = 0; sheetIndex < workbook.getNumberOfSheets(); sheetIndex++) {
+            Sheet sheet = workbook.getSheetAt(sheetIndex);
+            sheetNames.add(sheet.getSheetName());
 
-                Row headerRow = sheet.getRow(0);
-                if (headerRow == null) continue;
+            List<List<Double>> sheetData = new ArrayList<>();
+            List<String> columnNames = new ArrayList<>();
 
-                for (Cell cell : headerRow) {
-                    columnNames.add(cell.getStringCellValue());
-                    sheetData.add(new ArrayList<>());
-                }
+            Row headerRow = sheet.getRow(0);
+            if (headerRow == null) continue;
 
-                for (int i = 1; i <= sheet.getLastRowNum(); i++) {
-                    Row row = sheet.getRow(i);
-                    if (row != null) {
-                        for (int j = 0; j < columnNames.size(); j++) {
-                            Cell cell = row.getCell(j);
-                            if (cell != null && cell.getCellType() == CellType.NUMERIC) {
-                                sheetData.get(j).add(cell.getNumericCellValue());
+            for (Cell cell : headerRow) {
+                columnNames.add(cell.getStringCellValue());
+                sheetData.add(new ArrayList<>());
+            }
+
+            for (int i = 1; i <= sheet.getLastRowNum(); i++) {
+                Row row = sheet.getRow(i);
+                if (row != null) {
+                    for (int j = 0; j < columnNames.size(); j++) {
+                        Cell cell = row.getCell(j, Row.MissingCellPolicy.RETURN_NULL_AND_BLANK);
+                        if (cell != null) {
+                            switch (cell.getCellType()) {
+                                case NUMERIC:
+                                    sheetData.get(j).add(cell.getNumericCellValue());
+                                    break;
+                                case FORMULA:
+                                    CellValue cellValue = evaluator.evaluate(cell);
+                                    if (cellValue.getCellType() == CellType.NUMERIC) {
+                                        sheetData.get(j).add(cellValue.getNumberValue());
+                                    } else {
+                                        sheetData.get(j).add(0.0);
+                                    }
+                                    break;
+                                default:
+                                    sheetData.get(j).add(0.0);
                             }
                         }
                     }
                 }
-
-                sheetsData.add(sheetData);
-                sheetsColumnNames.add(columnNames);
             }
-            currentSheetIndex = 0; // первый лист по умолчанию
+
+            sheetsData.add(sheetData);
+            sheetsColumnNames.add(columnNames);
         }
+        currentSheetIndex = 0; // первый лист по умолчанию
     }
+}
 
     public void saveResultsToExcel(File file, List<String> statsNames, List<double[]> statsResults) throws IOException {
         String filePath = file.getAbsolutePath();
