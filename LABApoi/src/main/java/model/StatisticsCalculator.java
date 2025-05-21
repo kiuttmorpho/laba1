@@ -1,4 +1,4 @@
-package model;
+  package model;
 
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.apache.commons.math3.stat.correlation.Covariance;
@@ -13,11 +13,9 @@ public class StatisticsCalculator {
     }
 
     public static double calculateGeometricMean(List<Double> data) {
-        double product = 1.0;
-        for (double num : data) {
-            product *= num;
-        }
-        return Math.pow(product, 1.0 / data.size());
+        DescriptiveStatistics stats = new DescriptiveStatistics();
+        data.forEach(stats::addValue);
+        return stats.getGeometricMean();
     }
 
     public static double calculateStandardDeviation(List<Double> data) {
